@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Title </title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://threejs.org/build/three.min.js"></script>
+</head>
+<body>
+<script>
+//init
+  var socket = io.connect();
+  var eatbeta = 0;
+  var eatbeta2 = 0;
+  var inwidth = window.innerWidth;
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera( 80, window.innerWidth/window.innerHeight, 1, 1000 );
+  var renderer = new THREE.WebGLRenderer();
+  renderer.setSize( window.innerWidth-30, window.innerHeight-30 );
+  renderer.setClearColor( 0xbbbbbb);
+  document.body.appendChild( renderer.domElement );
+  //light
+  var directionalLight = new THREE.DirectionalLight( 0xffffff );
+  directionalLight.position.set( 10,0,20 ).normalize();
+  scene.add( directionalLight );
+  //box1
+  var geometry = new THREE.BoxGeometry(1, 10, 1);
+  var material = new THREE.MeshLambertMaterial( { color : 0x2f5084 } );
+  var box = new THREE.Mesh( geometry, material );
+  box.position.x = window.innerWidth/40;
+  scene.add( box );
+  //box2
+  var geometry = new THREE.BoxGeometry(1, 10, 1);
+  var material = new THREE.MeshLambertMaterial( { color : 0xc93232 } );
+  var box2 = new THREE.Mesh( geometry, material );
+  box2.position.x = -window.innerWidth/40;
+  scene.add( box2 );
+  //the ball
+  var ballgeo = new THREE.SphereGeometry( 2, 32, 32 );
+  var ballmat = new THREE.MeshLambertMaterial( { color :0xFFE34C} );
+  var ball = new THREE.Mesh( ballgeo , ballmat);
+  scene.add(ball);
+
+  //camara
+  camera.position.x = 0;
+  camera.position.y = 0;
+  camera.position.z = 30;
+  camera.lookAt( new THREE.Vector3(0, 0, 0) );
+  var pause=false;
+
+  function stop(){
+      if(pause){
+          requestAnimationFrame( render );
+          pause = false;
+      }
+      else {
+          cancelAnimationFrame( animation );
+          pause = true;
+      }
+  }
+  function restart(){
+    box.location.x = window.innerWidth/40;
+    box.location.y = 0;
+    box2.location.x = -window.innerWidth/40;
+    box2.location.y = 0;
+    ball.location.x = 0;
+    ball.location.y = 0;
+    ballxv = 0.15;
+    ballyv = 0.15;
+
+  };
+ //keydown
+  document.addEventListener('keydown', onDocumentKeyDown,false);
+  var enter_clickable=true,space_clickable=true;
+  function onDocumentKeyDown(event){
+          if((event.keyCode || event.which)==80)stop();
+  }
+  //ballDirection
+  var ballxv = 0
+  var ballyv = 0
+
+  function usefloor(min,max) {
+  return Math.floor(Math.random()*(max-min+1)+min);
+  }  
+  function render(){
+     animation=requestAnimationFrame( render );
+    if (ball.position.y > window.innerHeight/37 || ball.position.y < -window.innerHeight/37){
+      ballyv = 0-ballyv;
+      ball.position.y+=ballyv;
+    }
+    else {
+      ball.position.x+=ballxv;
+      ball.position.y+=ballyv;
+    }
+    if (ball.position.x > window.innerWidth/37 || ball.position.x < -window.innerWidth/37){
+      ballxv = 0-ballxv;
+      ball.position.x+=ballxv;
+    }
+    else {
+      ball.position.x+=ballxv;
+      ball.position.y+=ballyv;
+    }
+    if((ball.position.x > window.innerWidth/40) && (ball.position.y>box.position.y-5 &&ball.position.y < box.position.y+5 )){
+      var angle = ((ball.position.y-box.position.y)/3);
+      ballyv=ballxv*angle;
+      ballxv =-ballxv;
+    }
+    else if (ball.position.x > window.innerWidth / 40) {
+      if (confirm('JIZZ! one more?')) location.reload();
+      else stop();
+    }
+    if((ball.position.x < -window.innerWidth/40) && (ball.position.y>box2.position.y-5 &&ball.position.y < box2.position.y+5 )){
+      angle = -((ball.position.y-box2.position.y)/3);
+      ballyv=ballxv*angle;
+      ballxv =-ballxv;
+    }
+    else if (ball.position.x < -window.innerWidth / 40) {
+      if (confirm('7122! one more?')) location.reload();
+      else stop();
+    }
+    renderer.render( scene, camera );
+  }
+  render();
+  var ballxv = 0.15
+  var ballyv = 0.15
+  socket.on('beta', function(data) {
+    eatbeta = -data;
+    if(eatbeta>0 && window.innerHeight/40 > box.position.y){
+      box.position.y += eatbeta/400;
+    }else if (eatbeta<0 && -window.innerHeight/40 < box.position.y){
+      box.position.y += eatbeta/400;
+    }
+  });
+  socket.on('beta2',function(data){
+    eatbeta2 = -data;
+    if(eatbeta2>0 && window.innerHeight/40 > box2.position.y){
+      box2.position.y +=eatbeta2/400;
+    }else if (eatbeta2<0 &&-window.innerHeight/40 < box2.position.y){
+      box2.position.y += eatbeta2/400;
+    }
+  });
+</script>
+</body>
+</html>

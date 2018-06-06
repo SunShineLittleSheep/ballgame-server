@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <script src="/socket.io/socket.io.js"></script>
+	<title>JIZZ</title>
+	<style>
+		body{
+			margin:50px;
+			font-size:30px;
+		}
+	</style>
+	<script>
+  var socket = io.connect();
+  var alphaout = 0
+  var betaout = 0
+  var gammaout = 0
+  var myplayer = 0;
+  //陀螺儀
+  if(window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', function(event) {
+      var a = document.getElementById('alpha'),
+          b = document.getElementById('beta'),
+          g = document.getElementById('gamma'),
+          alpha = event.alpha,
+          beta = event.beta,
+          gamma = event.gamma;
+      
+      a.innerHTML = Math.round(alpha);
+      alphaout = Math.round(alpha);
+      b.innerHTML = Math.round(beta);
+      betaout = Math.round(beta);
+      g.innerHTML = Math.round(gamma);
+    }, false);
+  }else{
+    document.querySelector('body').innerHTML = '你的瀏覽器不支援喔';
+  };
+
+  socket.on('whoison',function(data){
+    socket.emit('ison',myplayer);
+    console.log(myplayer+'jizz')
+  })
+  
+  socket.emit('whoami',0);
+  socket.on('answerofit',function(data){
+    if (data == 1){
+      myplayer = 1;
+      console.log(myplayer)
+      setInterval(function(){
+        socket.emit('betaout',betaout);
+      },1);
+    }else if (data == 2){
+      myplayer = 2;
+      console.log(myplayer);
+      setInterval(function(){
+        socket.emit('betaout2',betaout);
+      },1);
+    }
+  });
+
+	</script>
+</head>
+<body>
+	alpha:<span id="alpha"></span><br/>
+	beta:<span id="beta"></span><br/>
+	gamma:<span id="gamma"></span><br/>
+		
+  <style>
+  #info {
+    position: fixed;
+    z-index: 999;
+    bottom: 20px;
+    left: 0px;
+    background: #222;
+    padding: 20px 30px;
+    color: #fff;
+    box-shadow: rgba(0, 0, 0, .5) 0 0 10px;
+    border-radius: 0 5px 5px 0;
+		font-size:16px;
+  }
+  #info a {
+    color: #0bf;
+    transition: .2s;
+  }
+  
+  #info a:hover {
+    color: #6df;
+  }
+  </style>
+</body>
+</html>
